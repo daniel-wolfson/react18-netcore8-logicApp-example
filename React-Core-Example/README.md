@@ -2,7 +2,7 @@
 # React + Redux + TypeScript + .NET Core
 
 ## location on github
-https://github.com/daniel-wolfson/pandologic_react_core.git
+https://github.com/daniel-wolfson/react17-core3.1-LogicApp-template.git
 
 ## About this Project
 
@@ -42,3 +42,4 @@ Current RootDirectory: [[drive:\\projects]\pandologic_react_core]
     - cd [RootDirectory]\JobApi\bin\Debug\netcoreapp3.1
     - JobViewsApi.exe
     - app starting on http://localhost:5000
+
