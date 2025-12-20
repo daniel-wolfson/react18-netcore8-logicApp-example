@@ -1,9 +1,7 @@
-import React from 'react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import store from '../store/store';
+import store from '../features/redux/store/store';
 import App from '../app';
-import { number } from 'prop-types';
 
 test('renders app component', () => {
   render(

@@ -1,30 +1,42 @@
+import { Job } from '../models/job.model';
+import { JobView } from '../models/jobview.model';
+
 // Mock data for development when backend is not available
 export const mockJobs = [
     {
-        id: 1,
+        id: '1',
         title: 'Software Engineer',
         company: 'Tech Corp',
         location: 'San Francisco, CA',
         status: 'active',
         postedDate: '2025-12-01T00:00:00Z',
+        createDate: '2025-12-01T00:00:00Z',
+        description: 'We are looking for a skilled Software Engineer to join our team.',
+        active: true,
     },
     {
-        id: 2,
+        id: '2',
         title: 'Frontend Developer',
         company: 'Web Solutions',
         location: 'New York, NY',
         status: 'active',
         postedDate: '2025-12-05T00:00:00Z',
+        createDate: '2025-12-05T00:00:00Z',
+        description: 'Join our frontend team to build amazing user experiences.',
+        active: true,
     },
     {
-        id: 3,
+        id: '3',
         title: 'Full Stack Developer',
         company: 'Digital Agency',
         location: 'Austin, TX',
         status: 'active',
         postedDate: '2025-12-10T00:00:00Z',
+        createDate: '2025-12-10T00:00:00Z',
+        description: 'Full stack developer position working with modern technologies.',
+        active: true,
     },
-];
+] as Job[];
 
 export const mockJobViews = [
     {
@@ -87,4 +99,4 @@ export const mockJobViews = [
         views: 1880,
         viewsPredicted: 1820,
     },
-];
+] as JobView[];

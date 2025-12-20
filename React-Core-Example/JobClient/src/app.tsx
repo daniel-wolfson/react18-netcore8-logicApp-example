@@ -1,46 +1,40 @@
-import React from "react";
-import "./app.css";
-import { JobViewChart } from "./components/JobViewChart";
-import { Layout } from "./components/Layout";
+import React, { useEffect } from 'react';
+import './app.css';
+import { Layout } from './components/Layout';
+import { JobViewChart } from './components/JobViewChart';
+import { useJobData } from './hooks/useJobs';
+import { useAppContext } from './context/AppContext';
 
-import { connect } from "react-redux";
-import { Job } from "./models/job.model";
-import { JobView } from "./models/jobview.model";
+function App() {
+    const { jobs, jobViews, isLoading, isError, error } = useJobData();
+    const { appLoading, setAppLoading } = useAppContext();
 
-interface AppProps {
-  appLoading: boolean;
-  jobs: Job[];
-  jobViews: JobView[];
+    useEffect(() => {
+        // Update app loading state based on queries
+        setAppLoading(isLoading);
+    }, [isLoading, setAppLoading]);
+
+    if (isError) {
+        return (
+            <Layout>
+                <div className="error">Error loading data: {error?.message || 'Unknown error'}</div>
+            </Layout>
+        );
+    }
+
+    return (
+        <Layout>
+            <div className="App">
+                <header className="App-header">
+                    {appLoading ? (
+                        <div>Loading...</div>
+                    ) : (
+                        <JobViewChart appLoading={appLoading} jobs={jobs} jobViews={jobViews} />
+                    )}
+                </header>
+            </div>
+        </Layout>
+    );
 }
 
-function App(props: AppProps) {
-  return (
-    <div className="App">
-      <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css"
-      />
-      <Layout>
-        <JobViewChart 
-          appLoading={props.appLoading} 
-          jobs={props.jobs} 
-          jobViews={props.jobViews} 
-        />
-      </Layout>
-    </div>
-  );
-}
-
-const mapStateToProps = (state: any) => {
-  const loading = state.loading?.appLoading ?? false;
-  const jobs = state.jobs?.jobs ?? [];
-  const jobViews = state.jobViews?.jobViews ?? [];
-  
-  return {
-    appLoading: loading,
-    jobs: jobs,
-    jobViews: jobViews
-  };
-};
-
-export default connect(mapStateToProps)(App);
+export default App;
