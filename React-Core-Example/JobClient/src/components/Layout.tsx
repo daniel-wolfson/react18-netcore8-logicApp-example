@@ -1,7 +1,11 @@
-import React, { Component } from 'react';
+import React, { Component, ReactNode } from 'react';
 import { Container } from 'reactstrap';
 
-export class Layout extends Component {
+interface LayoutProps {
+  children?: ReactNode;
+}
+
+export class Layout extends Component<LayoutProps> {
   static displayName = Layout.name;
 
   render () {

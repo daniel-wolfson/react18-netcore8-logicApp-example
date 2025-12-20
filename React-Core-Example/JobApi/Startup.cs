@@ -57,8 +57,7 @@ namespace DataServices
             });
 
             services
-                .AddMvc(options => options.Filters.Add(typeof(ApiExceptionFilter)))
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+                .AddMvc(options => options.Filters.Add(typeof(ApiExceptionFilter)));
 
             // logic services
             services.AddScoped<IJobDataService, JobDataService>();

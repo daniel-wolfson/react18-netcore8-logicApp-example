@@ -3,10 +3,17 @@ import "./app.css";
 import { JobViewChart } from "./components/JobViewChart";
 import { Layout } from "./components/Layout";
 
-import { IState } from "./store/ISate";
 import { connect } from "react-redux";
+import { Job } from "./models/job.model";
+import { JobView } from "./models/jobview.model";
 
-function App(props: any) {
+interface AppProps {
+  appLoading: boolean;
+  jobs: Job[];
+  jobViews: JobView[];
+}
+
+function App(props: AppProps) {
   return (
     <div className="App">
       <link
@@ -14,26 +21,26 @@ function App(props: any) {
         href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css"
       />
       <Layout>
-        <JobViewChart props={props.appLoading} jobs={props.jobs} jobViews={props.jobViews} />
+        <JobViewChart 
+          appLoading={props.appLoading} 
+          jobs={props.jobs} 
+          jobViews={props.jobViews} 
+        />
       </Layout>
     </div>
   );
 }
 
-const mapStateToProps = (state: IState) => {
-  var {appLoading, jobs, jobViews} = state;
+const mapStateToProps = (state: any) => {
+  const loading = state.loading?.appLoading ?? false;
+  const jobs = state.jobs?.jobs ?? [];
+  const jobViews = state.jobViews?.jobViews ?? [];
+  
   return {
-    appLoading,
-    ...jobs,
-    ...jobViews //Object.assign([], ...state.jobViews)
-  }
+    appLoading: loading,
+    jobs: jobs,
+    jobViews: jobViews
+  };
 };
 
-// const mapDispatchToProps = (dispatch: any) => {
-//   return {
-//     getJobs: () => dispatch({ type: actionTypes.REQUEST_JOBS_DATA }),
-//   };
-// };
-
-//export default connect(mapStateToProps, mapDispatchToProps)(App);
 export default connect(mapStateToProps)(App);

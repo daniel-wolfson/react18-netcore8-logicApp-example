@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Extensions.Logging;
 using System;
 using System.IO;
 
@@ -35,13 +34,6 @@ namespace DataServices
             }
         }
 
-        public static IHostBuilder CreateHostBuilder1(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-
         public static IHostBuilder CreateHostBuilder(string[] args, string baseDir) =>
             Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
@@ -63,25 +55,22 @@ namespace DataServices
                     .ReadFrom.Configuration(context.Configuration);
                 Log.Logger = loggerConfig.CreateLogger();
                 services.AddSingleton(Log.Logger);
-                services.AddSingleton<ILoggerFactory>(x => new SerilogLoggerFactory(null, false));
 
                 var env = context.HostingEnvironment;
-                var ver = typeof(Startup).Assembly.GetName().Version.ToString();
+                var ver = typeof(Startup).Assembly.GetName().Version?.ToString() ?? "1.0.0";
                 var environmentName = env.IsProduction() ? "Release" : env.EnvironmentName;
 
                 Log.Information(WindowsServiceHelpers.IsWindowsService()
                     ? $"Starting Windows Service ({environmentName} ver.{ver})"
-                    : $"Starting Web host Service ({ environmentName} ver.{ver})");
+                    : $"Starting Web host Service ({environmentName} ver.{ver})");
             })
             .ConfigureLogging((context, logging) =>
             {
-                logging.AddSerilog(logging.Services
-                    .BuildServiceProvider()
-                    .GetRequiredService<Serilog.ILogger>(),
-                    dispose: true);
+                logging.ClearProviders();
+                logging.AddSerilog(dispose: true);
             })
             .UseSerilog()
-            .UseWindowsService()
+            //.UseWindowsService()
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();

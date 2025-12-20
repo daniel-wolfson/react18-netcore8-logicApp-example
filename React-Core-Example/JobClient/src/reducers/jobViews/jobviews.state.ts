@@ -1,14 +1,21 @@
+import { Reducer } from 'redux';
 import { SET_JOBVIEWS_DATA } from '../../constants/action-types';
 import { JobView } from '../../models/jobview.model';
 
-const initialState = new Array<JobView>();
+interface JobViewAction {
+    type: string;
+    payload?: JobView[];
+}
 
-// eslint-disable-next-line import/no-anonymous-default-export
-export default (state = initialState, action: any) => {
-  switch (action.type) {
-    case SET_JOBVIEWS_DATA:
-      return action.payload || initialState;
-    default:
-      return state;
-  }
+const initialState: JobView[] = [];
+
+const jobViewsReducer: Reducer<JobView[], JobViewAction> = (state = initialState, action) => {
+    switch (action.type) {
+        case SET_JOBVIEWS_DATA:
+            return action.payload || initialState;
+        default:
+            return state;
+    }
 };
+
+export default jobViewsReducer;

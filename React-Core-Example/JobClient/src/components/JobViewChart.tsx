@@ -1,7 +1,33 @@
 import React from "react";
 import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartOptions,
+  ChartData
+} from 'chart.js';
+import { parse, parseISO, isValid, format } from 'date-fns';
 import { Job } from "../models/job.model";
 import { JobView } from "../models/jobview.model";
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface IProps {
   appLoading: boolean;
@@ -9,153 +35,188 @@ interface IProps {
   jobViews: JobView[];
 }
 
-export interface IState {
-  labels: [];
-  datasets: [][];
-}
 
-const months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+  // Try common date formats (single-digit patterns first, then zero-padded)
+  const formats = [
+    'M/d/yyyy',      // 5/9/2024 (MM/DD US format with single digits)
+    'MM/dd/yyyy',    // 12/31/2024
+    'd/M/yyyy',      // 5/9/2024 (DD/MM format with single digits)
+    'dd/MM/yyyy',    // 31/12/2024
+    'M-d-yyyy',      // 5-9-2024
+    'MM-dd-yyyy',    // 12-31-2024
+    'd-M-yyyy',      // 5-9-2024
+    'dd-MM-yyyy',    // 31-12-2024
+    'M.d.yyyy',      // 5.9.2024
+    'MM.dd.yyyy',    // 12.31.2024
+    'd.M.yyyy',      // 5.9.2024
+    'dd.MM.yyyy',    // 31.12.2024
+  ];
 
-const convertDate = (date_str: string) => {
-  const temp_date = new Date(date_str);
-  return months[temp_date.getMonth() - 1] + " " + temp_date.getDate();
+export const parseDateFromString = (dateStr: string): Date | null => {
+  if (!dateStr) {
+    return null;
+  }
+
+  // Try ISO format first
+  const isoDate = parseISO(dateStr);
+  if (isValid(isoDate)) {
+    return isoDate;
+  }
+
+  for (const formatStr of formats) {
+    const parsed = parse(dateStr, formatStr, new Date());
+    if (isValid(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
 };
 
-export class JobViewChart extends React.Component<any, any> {
-  options: {};
+const convertDate = (dateStr: string): string => {
+  const parsedDate = parseDateFromString(dateStr);
+  if (!parsedDate) {
+    return dateStr || "";
+  }
+
+  return format(parsedDate, 'MMMM d');
+};
+
+const coerceNumber = (...values: Array<number | string | null | undefined>): number => {
+  for (const value of values) {
+    if (typeof value === "number" && !Number.isNaN(value)) {
+      return value;
+    }
+
+    if (typeof value === "string" && value.trim().length) {
+      const parsed = Number(value);
+      if (!Number.isNaN(parsed)) {
+        return parsed;
+      }
+    }
+  }
+
+  return 0;
+};
+
+export class JobViewChart extends React.Component<IProps, ChartData<"bar" | "line">> {
+  options: any;
 
   constructor(props: IProps) {
     super(props);
 
-    let labels: string[] = [];
-    let activeJobs: number[] = [];
-    let views: number[] = [];
-    let viewsPredicted: number[] = [];
-
-    if (props.jobViews && props.jobViews.length) {
-      labels = props.jobViews
-        ? props.jobViews.map((x) => convertDate(x.viewDate))
-        : [];
-
-      activeJobs = props.jobViews.map((x) => x.activeJobs);
-      views = props.jobViews.map((x) => x.views);
-      viewsPredicted = props.jobViews.map((x) => x.viewsPredicted);
-    }
-
+    // Chart.js v4 options structure
     this.options = {
-      title: {
-        display: true,
-        text: "Comulative job views vs. prediction",
-        fontSize: 20,
-      },
-      legend: {
-        display: true,
-        position: "bottom",
-        labels: {
-          fontColor: "#323130",
-          fontSize: 14,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: "Cumulative job views vs. prediction",
+          font: {
+            size: 20,
+          },
+        },
+        legend: {
+          display: true,
+          position: "bottom" as const,
+          labels: {
+            color: "#323130",
+            font: {
+              size: 14,
+            },
+          },
+        },
+        tooltip: {
+          backgroundColor: "white",
+          titleColor: "black",
+          bodyColor: "black",
+          borderColor: "gray",
+          borderWidth: 1,
+          displayColors: false,
+          callbacks: {
+            title: function (tooltipItems: any) {
+              return tooltipItems[0].label;
+            },
+            beforeBody: function (tooltipItems: any) {
+              const index = tooltipItems[0].dataIndex;
+              const datasets = tooltipItems[0].chart.data.datasets;
+              const viewsVal = datasets[0]?.data[index] ?? 0;
+              const predictedVal = datasets[1]?.data[index] ?? 0;
+              const activeJobsVal = datasets[2]?.data[index] ?? 0;
+              
+              return [
+                `Job views: ${viewsVal}`,
+                `Predicted job views: ${predictedVal}`,
+                `Active jobs: ${activeJobsVal}`
+              ];
+            },
+            label: function () {
+              return "";
+            },
+          },
         },
       },
       scales: {
-        xAxes: [
-          {
-            scaleLabel: {
-              display: true,
-              labelString: "",
-            },
-          },
-        ],
-        yAxes: [
-          {
-            type: "linear",
+        x: {
+          title: {
             display: true,
-            position: "left",
-            id: "y-axis-jobViews",
-            scaleLabel: {
-              display: true,
-              labelString: "Job views",
-            },
-            ticks: {
-              beginAtZero: true,
-              autoSkip: true,
-              suggestedMin: 0,
-              suggestedMax: 1500,
-              stepSize: 500,
-            },
+            text: "",
           },
-          {
-            type: "linear",
-            display: true,
-            position: "right",
-            gridLines: {
-              display: false,
-            },
-            id: "y-axis-jobs",
-            scaleLabel: {
-              display: true,
-              labelString: "Jobs",
-            },
-            ticks: {
-              beginAtZero: true,
-              autoSkip: true,
-              suggestedMin: 0,
-              suggestedMax: 100,
-              stepSize: 50,
-            },
-          },
-        ],
-      },
-      tooltips: {
-        bodyFontColor: "black",
-        titleFontColor: "black",
-        backgroundColor: "white",
-        borderColor: "gray",
-        borderWidth: "1",
-        displayColors: false,
-        custom: function (tooltip: any) {
-          if (!tooltip) return;
         },
-        callbacks: {
-          title: function (tooltipItem: any, data: any) {
-            return data.labels[tooltipItem[0].index];
+        'y-axis-jobViews': {
+          type: "linear" as const,
+          display: true,
+          position: "left" as const,
+          title: {
+            display: true,
+            text: "Job views",
           },
-          beforeLabel: function (tooltipItem: any, data: any) {
-            //var datasetIndex = tooltipItem.datasetIndex;
-            var views =
-              "Job views: " + data.datasets[0].data[tooltipItem.index];
-            var viewsPredicted =
-              "Predicted job views: " +
-              data.datasets[1].data[tooltipItem.index];
-            var activeJobs =
-              "Active jobs: " + data.datasets[2].data[tooltipItem.index];
-            return (
-              views + "\r\n" + viewsPredicted + "\r\n" + activeJobs + "\r\n"
-            );
+          ticks: {
+            beginAtZero: true,
+            suggestedMin: 0,
+            suggestedMax: 1500,
+            stepSize: 500,
           },
-          label: function (tooltipItem: any, data: any) {
-            //var label = data.labels[tooltipItem.index];
-            //var datasetLabel = "$" + tooltipItem.yLabel;
-            return ""; //label + " " + datasetLabel
+        },
+        'y-axis-jobs': {
+          type: "linear" as const,
+          display: true,
+          position: "right" as const,
+          grid: {
+            display: false,
+          },
+          title: {
+            display: true,
+            text: "Jobs",
+          },
+          ticks: {
+            beginAtZero: true,
+            suggestedMin: 0,
+            suggestedMax: 100,
+            stepSize: 50,
           },
         },
       },
-    };
+    } as ChartOptions<"bar" | "line">;
 
-    this.state = {
-      labels: labels,
+    this.state = this.buildChartState(props.jobViews);
+  }
+
+  private buildChartState(jobViews: JobView[] = []): ChartData<"bar" | "line"> {
+    const labels = jobViews.map((x) => convertDate(x.viewDate));
+    const views = jobViews.map((x: any) =>
+      coerceNumber(x.views, x.viewCount, x.viewNum)
+    );
+    const viewsPredicted = jobViews.map((x: any) =>
+      coerceNumber(x.viewsPredicted, x.viewCountPredicted, x.viewNumPredicted)
+    );
+    const activeJobs = jobViews.map((x: any) =>
+      coerceNumber(x.activeJobs, x.jobs, x.jobCount, x.activeJobCount)
+    );
+
+    return {
+      labels,
       datasets: [
         {
           type: "line",
@@ -164,6 +225,7 @@ export class JobViewChart extends React.Component<any, any> {
           borderWidth: 2,
           fill: false,
           data: views,
+          yAxisID: 'y-axis-jobViews',
           pointBorderColor: "rgba(94, 217, 170, 1)",
           pointBackgroundColor: "rgba(94, 217, 170, 1)",
           pointBorderWidth: 1,
@@ -181,13 +243,15 @@ export class JobViewChart extends React.Component<any, any> {
           borderWidth: 1,
           fill: false,
           data: viewsPredicted,
-          borderDash: [1, 1],
+          yAxisID: 'y-axis-jobViews',
+          borderDash: [5, 5],
         },
         {
           type: "bar",
           label: "active jobs",
           backgroundColor: "rgb(207, 207, 207)",
           data: activeJobs,
+          yAxisID: 'y-axis-jobs',
           borderColor: "white",
           borderWidth: 2,
         },
@@ -195,13 +259,16 @@ export class JobViewChart extends React.Component<any, any> {
     };
   }
 
+  componentDidUpdate(prevProps: IProps) {
+    if (prevProps.jobViews !== this.props.jobViews) {
+      this.setState(this.buildChartState(this.props.jobViews));
+    }
+  }
+
   render() {
     return (
-      <div style={{
-        width: "100vw",
-        height: "calc(100vh - 50px)"
-      }}>
-        <Bar data={this.state} options={this.options} ref="chart" />
+      <div className="job-view-chart-container">
+        <Bar data={this.state as any} options={this.options} />
       </div>
     );
   }
