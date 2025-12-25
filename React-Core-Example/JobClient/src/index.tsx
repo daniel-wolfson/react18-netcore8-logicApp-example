@@ -13,9 +13,9 @@ const root = ReactDOM.createRoot(container!);
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false, // Do not reload when the window has focus
+      retry: 1, // Attempt to retry the request once if an error occurs
+      staleTime: 5 * 60 * 1000 // After 5 minutes, the data is considered stale
     },
   },
 });
