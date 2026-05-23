@@ -7,7 +7,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [appLoading, setAppLoading] = useState<boolean>(true);
 
   return (

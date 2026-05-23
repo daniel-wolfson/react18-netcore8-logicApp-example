@@ -4,7 +4,7 @@ import { appLoading } from '../reducers/loading/actions';
 import { mockJobs, mockJobViews } from '../../../tests/mockData';
 
 const API_URL = 'http://localhost:5000'; //TODO: read from appsettings
-const USE_MOCK_DATA = process.env.REACT_APP_USE_MOCK_DATA === 'true'; // Set to true to use mock data
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true'; // Set to true to use mock data
 
 export const jobDataMiddleWare = (store: any) => (next: Function) => async (action: any) => {
     switch (action.type) {
@@ -19,7 +19,7 @@ export const jobDataMiddleWare = (store: any) => (next: Function) => async (acti
 
         case actionTypes.REQUEST_JOBVIEWS_DATA:
             getJobs(store.dispatch, next).then((results) =>
-                store.dispatch({ type: actionTypes.SET_JOBVIEWS_DATA, payload: results.data })
+                store.dispatch({ type: actionTypes.SET_JOBVIEWS_DATA, payload: results.data }),
             );
             break;
 

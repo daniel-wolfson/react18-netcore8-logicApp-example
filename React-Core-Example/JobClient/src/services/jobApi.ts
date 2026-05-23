@@ -3,8 +3,8 @@ import { Job } from '../models/job.model';
 import { JobView } from '../models/jobview.model';
 import { mockJobs, mockJobViews } from '../tests/mockData';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-const USE_MOCK_DATA = process.env.REACT_APP_USE_MOCK_DATA === 'true';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
 export const jobApi = {
     /**

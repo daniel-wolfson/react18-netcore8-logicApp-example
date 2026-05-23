@@ -14,7 +14,7 @@ const store = configureStore({
     reducer: appReducer,
     preloadedState: persistedState,
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger).concat(jobdata),
-    devTools: process.env.NODE_ENV !== 'production',
+    devTools: import.meta.env.MODE !== 'production',
 });
 
 // save state to localStorage on any change
