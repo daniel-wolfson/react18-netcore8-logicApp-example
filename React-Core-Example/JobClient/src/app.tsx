@@ -25,13 +25,14 @@ function App() {
     return (
         <Layout>
             <div className="App">
-                <header className="App-header">
+                <header className="App-header"></header>
+                <main>
                     {appLoading ? (
-                        <div>Loading...</div>
+                        <div role="status" aria-live="polite">Loading...</div>
                     ) : (
                         <JobViewChart appLoading={appLoading} jobs={jobs} jobViews={jobViews} />
-                    )}
-                </header>
+                    )}  
+                </main>
             </div>
         </Layout>
     );
